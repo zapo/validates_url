@@ -1,6 +1,7 @@
 require 'addressable/uri'
 require 'active_model'
 require 'active_support/i18n'
+require 'public_suffix'
 I18n.load_path += Dir[File.dirname(__FILE__) + "/locale/*.yml"]
 
 module ActiveModel
@@ -11,6 +12,7 @@ module ActiveModel
         options.reverse_merge!(:schemes => %w(http https))
         options.reverse_merge!(:message => :url)
         options.reverse_merge!(:no_local => false)
+        options.reverse_merge!(:public_suffix => false)
 
         super(options)
       end
@@ -19,7 +21,9 @@ module ActiveModel
         schemes = [*options.fetch(:schemes)].map(&:to_s)
         begin
           uri = Addressable::URI.parse(value)
-          unless uri && uri.host && schemes.include?(uri.scheme) && (!options.fetch(:no_local) || uri.host.include?('.'))
+          validate_suffix = !options.fetch(:public_suffix) || (uri && uri.host && PublicSuffix.valid?(uri.host))
+          validate_no_local = !options.fetch(:no_local) || uri.host.include?('.')
+          unless uri && uri.host && schemes.include?(uri.scheme) && validate_no_local && validate_suffix
             record.errors.add(attribute, options.fetch(:message), :value => value)
           end
         rescue Addressable::URI::InvalidURIError
