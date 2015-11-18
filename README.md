@@ -29,6 +29,9 @@ class Pony < ActiveRecord::Base
 
   # without local hostnames
   validates :homepage, :url => {:no_local => true}
+
+  # host against public suffix database https://publicsuffix.org/
+  validates :homepage, :url => {:public_suffix => true}
 end
 ```
 
