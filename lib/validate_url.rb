@@ -21,7 +21,7 @@ module ActiveModel
         schemes = [*options.fetch(:schemes)].map(&:to_s)
         begin
           uri = Addressable::URI.parse(value)
-          validate_suffix = !options.fetch(:public_suffix) || (uri && uri.host && PublicSuffix.valid?(uri.host))
+          validate_suffix = !options.fetch(:public_suffix) || (uri && uri.host && PublicSuffix.valid?(uri.host, :default_rule => nil))
           validate_no_local = !options.fetch(:no_local) || uri.host.include?('.')
           unless uri && uri.host && schemes.include?(uri.scheme) && validate_no_local && validate_suffix
             record.errors.add(attribute, options.fetch(:message), :value => value)
