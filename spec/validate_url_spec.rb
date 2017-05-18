@@ -67,6 +67,22 @@ describe "URL validation" do
       expect(@user).to be_valid
     end
 
+    it "should allow a url with query only if it has a path" do
+      @user.homepage = "http://foo_bar.com/?"
+      expect(@user).to be_valid
+      @user.homepage = "http://foo_bar.com/?a=b"
+      expect(@user).to be_valid
+      @user.homepage = "http://foo_bar.com?a=b"
+      expect(@user).not_to be_valid
+    end
+
+    it "should not allow a url with no host but a query" do
+       @user.homepage = "http:///?a=b"
+       expect(@user).not_to be_valid
+       @user.homepage = "http://?"
+       expect(@user).not_to be_valid
+    end
+
     it "should return a default error message" do
       @user.homepage = "invalid"
       @user.valid?

@@ -59,6 +59,17 @@ You can pass the `:message => "my custom error"` option to your validation to de
 
 Big thanks to Tanel Suurhans, Tarmo Lehtpuu, Steve Smith and all the [contributors](https://github.com/perfectline/validates_url/contributors)! We appreciate all your work on new features and bugfixes.
 
+### Testing
+
+Run tests:
+
+`rspec spec/validate_url_spec.rb`
+
+Run one test by specifying the line number it starts at:
+
+`rspec spec/validate_url_spec.rb:79`
+
+
 ## Credits
 
 Validates URL is created and maintained by [PerfectLine](http://www.perfectline.co), LLC.

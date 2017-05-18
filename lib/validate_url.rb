@@ -21,15 +21,41 @@ module ActiveModel
         schemes = [*options.fetch(:schemes)].map(&:to_s)
         begin
           uri = Addressable::URI.parse(value)
-          validate_suffix = !options.fetch(:public_suffix) || (uri && uri.host && PublicSuffix.valid?(uri.host, :default_rule => nil))
-          validate_no_local = !options.fetch(:no_local) || uri.host.include?('.')
-          unless uri && uri.host && schemes.include?(uri.scheme) && validate_no_local && validate_suffix
+          valid = uri
+          valid &&= validate_host_presence(uri)
+          valid &&= validate_suffix(uri, options)
+          valid &&= validate_no_local(uri, options)
+          valid &&= validate_scheme_presence(uri, schemes)
+          valid &&= validate_pre_query(uri)
+          unless valid
             record.errors.add(attribute, options.fetch(:message), :value => value)
           end
         rescue Addressable::URI::InvalidURIError
           record.errors.add(attribute, options.fetch(:message), :value => value)
         end
       end
+
+      def validate_host_presence(uri)
+        uri.host && uri.host.length > 0
+      end
+
+      def validate_suffix(uri, options)
+        !options.fetch(:public_suffix) || (PublicSuffix.valid?(uri.host, :default_rule => nil))
+      end
+
+      def validate_no_local(uri, options)
+        !options.fetch(:no_local) || uri.host.include?('.')
+      end
+
+      def validate_scheme_presence(uri, schemes)
+        schemes.include?(uri.scheme)
+      end
+
+      def validate_pre_query(uri)
+        # URLs with queries should have a '/' before the '?'.
+        uri.query.nil? || uri.path&.starts_with?('/')
+      end
+
     end
 
     module ClassMethods
