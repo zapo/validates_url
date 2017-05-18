@@ -23,13 +23,29 @@ module ActiveModel
           uri = Addressable::URI.parse(value)
           validate_suffix = !options.fetch(:public_suffix) || (uri && uri.host && PublicSuffix.valid?(uri.host, :default_rule => nil))
           validate_no_local = !options.fetch(:no_local) || uri.host.include?('.')
-          unless uri && uri.host && schemes.include?(uri.scheme) && validate_no_local && validate_suffix
+	  validate_pre_query = has_slash_before_query(uri)
+	  validated = validate_suffix && validate_no_local && validate_pre_query
+          unless uri && uri.host && schemes.include?(uri.scheme) && validated
             record.errors.add(attribute, options.fetch(:message), :value => value)
           end
         rescue Addressable::URI::InvalidURIError
           record.errors.add(attribute, options.fetch(:message), :value => value)
         end
       end
+
+      def has_slash_before_query(uri)
+	# URLs with queries should have a '/' at some point before the '?'.
+	unless uri.query.nil?
+	  has_authority = uri.authority
+	  starts_with_slash = uri.path.first === '/'
+	  ends_with_slash = uri.path.last === '/'
+	  unless has_authority && starts_with_slash || has_authority.nil? && ends_with_slash
+	    return false
+	  end
+	end
+	return true
+      end
+
     end
 
     module ClassMethods
