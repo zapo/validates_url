@@ -24,6 +24,7 @@ module ActiveModel
         errors = [] 
         begin
           uri = Addressable::URI.parse(value)
+          raise Addressable::URI::InvalidURIError unless uri
           errors << :host unless validate_host_presence(uri)
           errors << :suffix unless validate_suffix(uri, public_suffix)
           errors << :no_local unless validate_no_local(uri, no_local)
@@ -41,24 +42,24 @@ module ActiveModel
       end
 
       def validate_host_presence(uri)
-        uri&.host && uri.host.length > 0
+        uri.host && uri.host.length > 0
       end
 
       def validate_suffix(uri, public_suffix)
-        !public_suffix || (PublicSuffix.valid?(uri&.host, :default_rule => nil))
+        !public_suffix || (PublicSuffix.valid?(uri.host, :default_rule => nil))
       end
 
       def validate_no_local(uri, no_local)
-        !no_local || uri&.host&.include?('.')
+        !no_local || uri.host&.include?('.')
       end
 
       def validate_scheme_presence(uri, schemes)
-        schemes.include?(uri&.scheme)
+        schemes.include?(uri.scheme)
       end
 
       def validate_pre_query(uri)
         # URLs with queries should have a '/' before the '?'.
-        uri&.query.nil? || uri&.path&.starts_with?('/')
+        uri.query.nil? || uri.path&.starts_with?('/')
       end
 
     end
