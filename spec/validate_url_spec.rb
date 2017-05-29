@@ -85,26 +85,11 @@ describe "URL validation" do
 
     it "should return a default error message" do
       @user.homepage = "invalid"
+      error_message = "A host and scheme (ex. 'http://adgear.com') are required", "Must begin with 'http://' or 'https://'"
       @user.valid?
-      expect(@user.errors[:homepage]).to eq(["is not a valid URL"])
+      expect(@user.errors[:homepage]).to eq(error_message)
     end
 
-    context "when locale is turkish" do
-      it "should return a Turkish default error message" do
-        I18n.locale = :tr
-        @user.homepage = "Black Tea"
-        @user.valid?
-        expect(@user.errors[:homepage]).to eq(["Geçerli bir URL değil"])
-      end
-    end
-    context "when locale is Japanese" do
-      it "should return a Japanese default error message" do
-        I18n.locale = :ja
-        @user.homepage = "黒麦茶"
-        @user.valid?
-        expect(@user.errors[:homepage]).to eq(["は不正なURLです。"])
-      end
-    end
   end
 
   context "with allow nil" do

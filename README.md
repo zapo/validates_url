@@ -6,7 +6,8 @@ This gem adds the capability of validating URLs to ActiveRecord and ActiveModel 
     
 ```    
 # add this to your Gemfile
-gem "validate_url"
+gem 'validate_url',
+  :git => 'git@github.com:zapo/validates_url.git'
 
 # and  run
 sudo gem install validate_url
@@ -50,7 +51,14 @@ end
 
 ### I18n
 
-The default error message `is not valid url`.
+The default error messages can be found in lib/locale/en.yml.
+From the master branch, only English messages are provided. For default messages in other languages, use the latest commit before specific error messages were provided:
+
+```
+# Gemfile, below what you added in the installation section above
+commit: 7076b190cf74fcc490daecc44d7f4e3fcba50a9f
+```
+
 You can pass the `:message => "my custom error"` option to your validation to define your own, custom message.
 
 

@@ -1,4 +1,9 @@
 en:
   errors:
     messages:
-      url: is not a valid URL
+      default: Not a valid URL
+      host: A host and scheme (ex. 'http://adgear.com') are required
+      suffix: A valid public suffix (.com, .org, ...) is required
+      no_local: Local paths are not allowed
+      scheme: Must begin with 'http://' or 'https://'
+      path: A path ('/') is required before a query ('?')

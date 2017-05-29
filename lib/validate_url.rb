@@ -10,7 +10,7 @@ module ActiveModel
 
       def initialize(options)
         options.reverse_merge!(:schemes => %w(http https))
-        options.reverse_merge!(:message => :url)
+        options.reverse_merge!(:message => false)
         options.reverse_merge!(:no_local => false)
         options.reverse_merge!(:public_suffix => false)
 
@@ -19,19 +19,25 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         schemes = [*options.fetch(:schemes)].map(&:to_s)
+        no_local = options.fetch(:no_local)
+        public_suffix = options.fetch(:public_suffix)
+        errors = [] 
         begin
           uri = Addressable::URI.parse(value)
-          valid = uri
-          valid &&= validate_host_presence(uri)
-          valid &&= validate_suffix(uri, options)
-          valid &&= validate_no_local(uri, options)
-          valid &&= validate_scheme_presence(uri, schemes)
-          valid &&= validate_pre_query(uri)
-          unless valid
-            record.errors.add(attribute, options.fetch(:message), :value => value)
+          raise Addressable::URI::InvalidURIError unless uri
+          errors << :host unless validate_host_presence(uri)
+          errors << :suffix unless validate_suffix(uri, public_suffix)
+          errors << :no_local unless validate_no_local(uri, no_local)
+          errors << :scheme unless validate_scheme_presence(uri, schemes)
+          errors << :path unless validate_pre_query(uri)
+          errors.each do |error|
+            error_message = options.fetch(:message) || error
+            record.errors.add(attribute, error_message, :value => value)
+            error_message != error ? break : nil # Custom error messages shouldn't be repeated.
           end
         rescue Addressable::URI::InvalidURIError
-          record.errors.add(attribute, options.fetch(:message), :value => value)
+          error_message = options.fetch(:message) || :default
+          record.errors.add(attribute, error_message, :value => value)
         end
       end
 
@@ -39,12 +45,12 @@ module ActiveModel
         uri.host && uri.host.length > 0
       end
 
-      def validate_suffix(uri, options)
-        !options.fetch(:public_suffix) || (PublicSuffix.valid?(uri.host, :default_rule => nil))
+      def validate_suffix(uri, public_suffix)
+        !public_suffix || (PublicSuffix.valid?(uri.host, :default_rule => nil))
       end
 
-      def validate_no_local(uri, options)
-        !options.fetch(:no_local) || uri.host.include?('.')
+      def validate_no_local(uri, no_local)
+        !no_local || uri.host&.include?('.')
       end
 
       def validate_scheme_presence(uri, schemes)
