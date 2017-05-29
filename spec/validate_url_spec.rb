@@ -83,10 +83,10 @@ describe "URL validation" do
        expect(@user).not_to be_valid
     end
 
-    it "should return a default error message" do
+    it "should return multiple error messages" do
       @user.homepage = "invalid"
-      error_message = "A host and scheme (ex. 'http://adgear.com') are required", "Must begin with 'http://' or 'https://'"
-      @user.valid?
+      error_message = ["requires valid host", "requires scheme in: http, https"]
+      expect(@user).not_to be_valid
       expect(@user.errors[:homepage]).to eq(error_message)
     end
 
