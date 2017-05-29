@@ -7,10 +7,8 @@ I18n.load_path += Dir[File.dirname(__FILE__) + "/locale/*.yml"]
 module ActiveModel
   module Validations
     class UrlValidator < ActiveModel::EachValidator
-
       def initialize(options)
         options.reverse_merge!(:schemes => %w(http https))
-        options.reverse_merge!(:message => false)
         options.reverse_merge!(:no_local => false)
         options.reverse_merge!(:public_suffix => false)
 
@@ -18,27 +16,33 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
+        @errors = []
+        @record = record
+        @attribute = attribute
+
         schemes = [*options.fetch(:schemes)].map(&:to_s)
         no_local = options.fetch(:no_local)
         public_suffix = options.fetch(:public_suffix)
-        errors = [] 
+
         begin
           uri = Addressable::URI.parse(value)
           raise Addressable::URI::InvalidURIError unless uri
-          errors << :host unless validate_host_presence(uri)
-          errors << :suffix unless validate_suffix(uri, public_suffix)
-          errors << :no_local unless validate_no_local(uri, no_local)
-          errors << :scheme unless validate_scheme_presence(uri, schemes)
-          errors << :path unless validate_pre_query(uri)
-          errors.each do |error|
-            error_message = options.fetch(:message) || error
-            record.errors.add(attribute, error_message, :value => value)
-            error_message != error ? break : nil # Custom error messages shouldn't be repeated.
-          end
+
+          add_error(options.fetch(:message, :url_host)) unless validate_host_presence(uri)
+          add_error(options.fetch(:message, :url_suffix)) unless validate_suffix(uri, public_suffix)
+          add_error(options.fetch(:message, :url_suffix)) unless validate_no_local(uri, no_local)
+          add_error(*options.fetch(:message, [:url_scheme, :schemes => schemes.join(', ')])) unless validate_scheme_presence(uri, schemes)
+          add_error(options.fetch(:message, :url_path)) unless validate_pre_query(uri)
+
         rescue Addressable::URI::InvalidURIError
-          error_message = options.fetch(:message) || :default
-          record.errors.add(attribute, error_message, :value => value)
+          add_error(options.fetch(:message, :url))
         end
+      end
+
+      def add_error(*message)
+        return if @errors.include?(message)
+        @record.errors.add(@attribute, *message)
+        @errors << message
       end
 
       def validate_host_presence(uri)
