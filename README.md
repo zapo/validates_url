@@ -33,6 +33,9 @@ class Pony < ActiveRecord::Base
 
   # host against public suffix database https://publicsuffix.org/
   validates :homepage, :url => {:public_suffix => true}
+
+  # without pre query
+  validates :homepage, :url => {:no_pre_query => true}
 end
 ```
 
