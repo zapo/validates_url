@@ -11,6 +11,7 @@ module ActiveModel
         options.reverse_merge!(:schemes => %w(http https))
         options.reverse_merge!(:no_local => false)
         options.reverse_merge!(:public_suffix => false)
+        options.reverse_merge!(:no_pre_query => false)
 
         super(options)
       end
@@ -23,6 +24,7 @@ module ActiveModel
         schemes = [*options.fetch(:schemes)].map(&:to_s)
         no_local = options.fetch(:no_local)
         public_suffix = options.fetch(:public_suffix)
+        no_pre_query = options.fetch(:no_pre_query)
 
         begin
           uri = Addressable::URI.parse(value)
@@ -32,7 +34,7 @@ module ActiveModel
           add_error(options.fetch(:message, :url_suffix)) unless validate_suffix(uri, public_suffix)
           add_error(options.fetch(:message, :url_suffix)) unless validate_no_local(uri, no_local)
           add_error(*options.fetch(:message, [:url_scheme, :schemes => schemes.join(', ')])) unless validate_scheme_presence(uri, schemes)
-          add_error(options.fetch(:message, :url_path)) unless validate_pre_query(uri)
+          add_error(options.fetch(:message, :url_path)) unless validate_pre_query(uri, no_pre_query)
 
         rescue Addressable::URI::InvalidURIError
           add_error(options.fetch(:message, :url))
@@ -61,9 +63,9 @@ module ActiveModel
         schemes.include?(uri.scheme)
       end
 
-      def validate_pre_query(uri)
+      def validate_pre_query(uri, no_pre_query)
         # URLs with queries should have a '/' before the '?'.
-        uri.query.nil? || uri.path&.starts_with?('/')
+        no_pre_query || uri.query.nil? || uri.path&.starts_with?('/')
       end
 
     end

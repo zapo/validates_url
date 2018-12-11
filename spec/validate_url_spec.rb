@@ -165,6 +165,17 @@ describe "URL validation" do
     end
   end
 
+  context "with no_pre_query" do
+    before do
+      @user = UserWithNoPreQuery.new
+    end
+
+    it "should allow a valid url with no pre query" do
+      @user.homepage = "http://foo_bar?a=b"
+      expect(@user).to be_valid
+    end
+  end
+
   context "with public_suffix" do
     before do
       @user = UserWithPublicSuffix.new
