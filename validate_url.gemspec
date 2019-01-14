@@ -36,7 +36,7 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency(%q<activemodel>, [">= 3.0.0"])
   s.add_runtime_dependency(%q<addressable>, [">= 0"])
-  s.add_runtime_dependency(%q<public_suffix>, ["~> 2.x.x"])
+  s.add_runtime_dependency(%q<public_suffix>, [">= 2.0.0"])
   s.add_development_dependency(%q<rspec>, [">= 3.0.0"])
   s.add_development_dependency(%q<diff-lcs>, [">= 1.1.2"])
   s.add_development_dependency(%q<rake>)
